@@ -1,0 +1,87 @@
+#!/bin/bash
+# Date: November 9, 2021
+# By: Adam Zieman
+
+# Initializes the default variables
+declare -i finiteLoop=-1
+declare -i pause=1
+
+# GETOPTS
+while getopts :s:r:a:b: arg
+  do
+  case $arg in
+    # modifies the sleep time
+    s) pause="$OPTARG" ;;
+    # set a finite amount of times to execute the loop
+    r) finiteLoop="$OPTARG" ;;
+    # Sets the first seed value
+    a) seed1="$OPTARG" ;;
+    # Sets the second seed value
+    b) seed2="$OPTARG" ;;
+    :) echo please enter a number in range exit 1 ;;
+    # invalid options
+    \?) echo Invaldi option $arg ignored. ;;
+  esac  
+done
+
+# Checks that there are values for both seeds
+test -z $seed1 && exit 1
+test -z $seed2 && exit 1
+ 
+
+# Checks the seed values for (0 and 1), or (1 and 0), or (1 and 1)
+case "$seed1" in
+  0)
+    if [ ! $seed2 -eq 1 ]
+    then
+      echo "Usage: The second seed value is invalid. You entered: $seed2" 1>&2
+      exit 1
+    fi ;;
+  1)
+    if [ ! $seed2 -eq 0 ] && [ ! $seed2 -eq 1 ]
+    then
+      echo "Usage: The second seed value was invalid. You entered: $seed2" 1>&2
+      exit 1
+    fi ;;
+  *)
+    echo "Usage: The first seed value was invalid. You entered: $seed1" 1>&2
+    exit 1 ;;
+esac
+
+# Initializes the loop variables
+repeatLoop=true
+declare -i count=0
+declare -i value1=$seed1
+declare -i value2=$seed2
+declare -i sum=0
+
+# Loop
+while [ $repeatLoop = true ]
+  do
+  # delay
+  sleep $pause
+
+  # Updates the value holding the amount of loop executions
+  ((count +=1))
+
+  # The Fibonacci Sequence
+  sum=$((value1 + value2))
+  echo $count:   $value1 + $value2 = $sum
+  value1=$value2
+  value2=$sum
+
+  # Checks if the user set a finite loop execution
+  if [ $finiteLoop -gt 0 ]
+  then
+    # Overwrites the loop conditional variable
+    if [ $count -ge $finiteLoop ]
+      then
+      repeatLoop=false
+    fi
+  fi
+done
+
+# Outputs the number of values calculated and printed
+# if the user defined a finite loop
+echo
+echo This Fibonacci Sequence recurred $count times.
